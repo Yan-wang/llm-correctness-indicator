@@ -1,0 +1,79 @@
+# Configuration for correctness indicator example
+max_iterations: 10
+checkpoint_interval: 5
+
+# LLM configuration
+llm:
+  models:
+    - name: "deepseek-chat"
+      weight: 1.0
+  api_base: "https://api.deepseek.com"
+  api_key: ${OPENAI_API_KEY}
+  temperature: 0.7
+  max_tokens: 8192
+  timeout: 120
+
+# Prompt configuration
+prompt:
+  num_top_programs: 2
+  num_diverse_programs: 2
+  num_recent_programs: 2
+  system_message: |
+    Evolve a **direct confidence score** formula from LLM logprobs to maximize **Voting Accuracy**.
+
+    ### The Goal
+    You are looking for a "Correctness Signature". In weighted voting, we need to aggressively suppress incorrect traces while amplifying correct ones. 
+
+    ### Feedback Loop (Artifacts Provided)
+    You will receive `train_failures` showing cases where the wrong answer won. 
+    - **prob_correct**: Your current softmax probability for the right answer.
+    - **margin**: How far behind the correct answer is.
+    - **correct_weight vs max_wrong_weight**: The raw scale of the votes.
+
+    ### Mathematical Dimensions to Explore
+    Don't just use `mean`. Explore:
+    1. **Temporal Disparity**: Does confidence decay or oscillate differently in wrong traces?
+    2. **Logprob Volatility**: High variance in top-k logprobs often signals "hallucination ruts".
+    3. **The Tail**: The very lowest logprobs (the "weakest links") are usually more predictive than the average.
+    4. **The Glide**: Calculate if the confidence is "dropping off a cliff" towards the end of the trace.
+
+    ### Guidelines
+    - **Analyze First**: Look at the provided `wrong_cases` and hypothesize *why* your current formula failed before writing code.
+    - **Relative Scale**: Ensure your scores are in a consistent range (e.g., 0 to 1 or -1 to 1). Large outliers will break the collective vote.
+    - **Simplicity**: One elegant formula that captures a fundamental property is better than 50 lines of if-else.
+
+    METRICS EXPLAINED:
+    - combined_score (Primary Fitness): **Smooth Voting Reward** (0.0 to 1.0). Representing the collective probability of the correct answer winning.
+    - voting_accuracy: % of correct collective decisions on training problems.
+    - margin: Average weight difference between correct and best wrong answer.
+
+# Database configuration
+database:
+  population_size: 50
+  archive_size: 20
+  num_islands: 1
+  elite_selection_ratio: 0.2
+  exploitation_ratio: 0.7
+  feature_dimensions: ["complexity", "diversity"]
+  feature_bins: 10
+
+  # embedding_model: "text-embedding-3-small"
+  similarity_threshold: 0.99
+
+# Evaluator configuration
+evaluator:
+  timeout: 180
+  cascade_evaluation: false
+  cascade_thresholds: [1.3]
+  parallel_evaluations: 3
+  validation_file: "./data/merged_split/val_split.jsonl"
+  enable_validation: false
+  reward_metric: "voting"
+
+# Evolution settings
+diff_based_evolution: true
+max_code_length: 20000
+
+# Evolution trace settings
+evolution_trace:
+  enabled: true

@@ -1,0 +1,76 @@
+# Configuration for correctness indicator example
+max_iterations: 10
+checkpoint_interval: 5
+
+# LLM configuration
+llm:
+  models:
+    - name: "deepseek-chat"
+      weight: 1.0
+  api_base: "https://api.deepseek.com"
+  api_key: ${OPENAI_API_KEY}
+  temperature: 0.7
+  max_tokens: 8192
+  timeout: 120
+
+# Prompt configuration
+prompt:
+  num_top_programs: 2
+  num_diverse_programs: 2
+  num_recent_programs: 2
+  system_message: |
+    Evolve numeric features (`{"feat1": val1, ...}`) from LLM logprobs to maximize **Collective Voting Success**.
+
+    ### The Goal
+    Discover predictive "signatures" of correctness. You propose the features; the system automatically finds the optimal mathematical weights to maximize the probability of the correct answer winning the collective vote.
+
+    ### Feedback Loop (Artifacts Provided)
+    - **optimized_weights**: Shows which of your features were most useful after numerical optimization.
+    - **train_failures**: Detailed cases where the optimized formula still failed.
+
+    ### Mathematical Dimensions to Explore
+    1. **Temporal Disparity**: Does confidence decay or oscillate differently in wrong traces?
+    2. **Logprob Volatility**: High variance in top-k logprobs often signals "hallucination ruts".
+    3. **The Tail**: The very lowest logprobs (the "weakest links") are usually more predictive than the average.
+    4. **The Glide**: Calculate if the confidence is "dropping off a cliff" towards the end of the trace.
+
+    ### Guidelines
+    - **Analyze Weights**: If a feature has zero or near-zero weight, it was noise. Try a different mathematical primitive.
+    - **Simplicity**: Return a flat dictionary of numeric features. 
+    - **No Combinations**: Do not manually sum features into a single "score"; the system handles the linear combination for you.
+
+    METRICS EXPLAINED:
+    - combined_score (Primary Fitness): **Smooth Voting Reward** (0.0 to 1.0). Representing the optimized probability of the correct answer winning.
+    - voting_accuracy: % of correct collective decisions on training problems.
+    - margin: Average weight difference between correct and best wrong answer.
+
+# Database configuration
+database:
+  population_size: 50
+  archive_size: 20
+  num_islands: 1
+  elite_selection_ratio: 0.2
+  exploitation_ratio: 0.7
+  feature_dimensions: ["complexity", "diversity"]
+  feature_bins: 10
+
+  # embedding_model: "text-embedding-3-small"
+  similarity_threshold: 0.99
+
+# Evaluator configuration
+evaluator:
+  timeout: 180
+  cascade_evaluation: false
+  cascade_thresholds: [1.3]
+  parallel_evaluations: 3
+  validation_file: "./data/merged_split/val_split.jsonl"
+  enable_validation: false
+  reward_metric: "voting"
+
+# Evolution settings
+diff_based_evolution: true
+max_code_length: 20000
+
+# Evolution trace settings
+evolution_trace:
+  enabled: true

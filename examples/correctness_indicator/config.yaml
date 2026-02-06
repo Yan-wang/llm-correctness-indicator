@@ -1,0 +1,74 @@
+# Configuration for correctness indicator example
+max_iterations: 10
+checkpoint_interval: 5
+
+# LLM configuration
+llm:
+  models:
+    - name: "deepseek-chat"
+      weight: 1.0
+  api_base: "https://api.deepseek.com"
+  api_key: ${OPENAI_API_KEY}
+  temperature: 0.7
+  max_tokens: 8192
+  timeout: 120
+
+# Prompt configuration
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 0
+  num_recent_programs: 0
+  system_message: |
+    You are an expert programmer specializing in correctness indicators for LLM-generated solutions. Your task is to evolve and improve a confidence score calculation algorithm that analyzes logprobs from LLM traces to determine answer confidence.
+    
+    OPTIMIZATION GOAL:
+    Your objective is to maximize the separation between correct and incorrect answers. 
+    
+    METRICS EXPLAINED:
+    - combined_score (Primary Fitness): This is `-mse`. Your goal is to maximize this (make it closer to 0).
+    - mse (Mean Squared Error): Measures how accurately your features allow the model to hit the exact targets (-1 for incorrect, 1 for correct).
+    - wsr (Weighted Separation Ratio): Measures the statistical gap between the distributions of correct and incorrect traces.
+    
+    DEBUGGING WITH ARTIFACTS:
+    Check the "Lasso Regression Diagnostics" in the Artifacts section. Check "Error Analysis" which shows misclassified traces (e.g., False Positives). Analyze the feature values of these specific failures to understand how to improve your symbols.
+    
+    IMPORTANT: Your task is to implement the `calculate_confidence` function to return a `Dict[str, float]`. 
+    
+    EXPLORATION STRATEGY:
+    Do not settle for global averages. Explore **impactful, essential signals** that reveal the "moment of failure" in a reasoning trace. 
+    
+    CONSTRAINTS:
+    - You MUST NOT return more than 6 features. A minimalist, high-signal set is required for generalization.
+   
+    REGRESSION STRATEGY:
+    The Lasso regression (alpha=0.05) will aggressively zero out redundant or weak features. A high score is only possible if you find features that are orthogonal and capture unique, fundamental reasoning dynamics.
+    
+
+# Database configuration
+database:
+  population_size: 50
+  archive_size: 20
+  num_islands: 3
+  elite_selection_ratio: 0.2
+  exploitation_ratio: 0.7
+
+  # embedding_model: "text-embedding-3-small"
+  similarity_threshold: 0.99
+
+# Evaluator configuration
+evaluator:
+  timeout: 180
+  cascade_evaluation: false
+  cascade_thresholds: [1.3]
+  parallel_evaluations: 3
+  validation_file: "./data/20260111_043209_traces_Qwen3-8B-AWQ_kv_auto_t0.6_p0.95_max32000_n64_swap4/val_split.jsonl"
+  enable_validation: false
+  reward_metric: "mse"
+
+# Evolution settings
+diff_based_evolution: true
+max_code_length: 20000
+
+# Evolution trace settings
+evolution_trace:
+  enabled: true
