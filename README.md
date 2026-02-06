@@ -1,8 +1,14 @@
 # Technical Report: Evolving Robust Correctness Indicators for LLM Reasoning
 
 **Date:** February 6, 2026
+
+
 **Subject:** High-Precision Confidence Signatures via Alpha-Evolve
+
+
 **Framework:** Alpha-Evolve (Symbolic & Hybrid Optimization)
+
+
 **Task:** Predictive Correctness for AIME/HMMT Mathematics
 
 ---
@@ -31,13 +37,26 @@ Prior work relies on **DeepConf**, which uses the "Bottom Window Confidence" (th
 * **Static Weighting**: The relative importance of signals is fixed by the researcher rather than optimized for specific model error profiles.
 * **Sub-optimal Separation**: It fails to maximize the distributional "gap" required to distinguish correct traces in adversarial 4:6 (correct:incorrect) scenarios.
 
+---
 
+## 3. Tasks and Datasets
+
+The experiment focuses on the most challenging tier of competitive mathematics to ensure the evolved signatures capture deep reasoning dynamics rather than simple pattern matching.
+
+### 3.1 Dataset Composition
+* **AIME (American Invitational Mathematics Examination)**: Problems involving intermediate/advanced algebra, geometry, and combinatorics.
+* **HMMT (Harvard-MIT Mathematics Tournament)**: High-difficulty problems characterized by creative logic leaps and low tolerance for arithmetic error.
+
+### 3.2 Data Split and Sampling
+* **Training Set**: 9 unique problems (90 total test cases). We enforced an **Adversarial 4:6 Ratio** (4 correct : 6 incorrect traces) to force the evolution to actively suppress incorrect majorities.
+* **Validation Set**: 4 problems (40 test cases) strictly held out from training to test conceptual generalization across different mathematical domains.
+* **Base Model**: `Qwen3-8B-AWQ` generated the raw traces using a temperature of 0.6 to ensure diverse logic paths for the evaluator to analyze.
 
 ---
 
-## 3. Methodology and Evolution Phases
+## 4. Methodology and Evolution Phases
 
-### 3.1 Overcoming the Discrete Plateau
+### 4.1 Overcoming the Discrete Plateau
 
 Initial optimization for discrete **Voting Accuracy** (0/1) led to a sparse gradient. Small weight adjustments failed to flip final votes, leaving the evolution without guidance.
 
@@ -49,27 +68,23 @@ $$
 
 This captures collective dynamics, rewarding the system as the "weight mass" shifts toward correct answers even before they win the majority.
 
-### 3.2 Evolutionary Strategies Comparison
-
-We compared two distinct evolutionary strategies to move beyond the baseline:
+### 4.2 Evolutionary Strategies Comparison
 
 #### Method A: Heuristic-Driven Evolution (Monolithic)
 In this phase, the LLM was tasked with generating both the mathematical features and the specific numerical weights/thresholds in a single code block. 
 * **Mechanism**: The model uses heuristic reasoning to assign weights (e.g., deciding that entropy should be multiplied by -0.5).
-* **Limitation**: While it improved upon the baseline, it suffered from a "discrete plateau" where the model struggled to tune floating-point weights with high precision.
+* **Limitation**: Suffered from low precision; LLMs are generally poor at floating-point weight balancing.
 
 #### Method B: Decoupled Feature Discovery (Hybrid)
-This phase introduced a specialized architecture that separated conceptual discovery from numerical precision.
+Separated conceptual discovery from numerical precision.
 * **Mechanism**: The LLM acts as a **Feature Scientist**, discovering symbolic mathematical primitives (e.g., `Logprob Volatility`, `The Glide`). These features are then passed to a deterministic **L-BFGS-B Optimizer**.
-* **Advantage**: The optimizer finds the mathematically perfect weight for every feature discovered by the LLM, allowing even subtle signals to be utilized to their full potential.
+* **Advantage**: The optimizer finds the mathematically perfect weight for every feature discovered by the LLM.
 
 ---
 
-## 4. Empirical Results
+## 5. Empirical Results
 
-### 4.1 Performance Breakthroughs
-
-The transition to a decoupled architecture produced a dramatic shift in both speed and the accuracy ceiling. By offloading numerical "brute force" to a specialized optimizer, the system reached a 90%+ reward in under 10 iterations.
+The transition to a decoupled architecture produced a dramatic shift in both speed and the accuracy ceiling.
 
 | Metric | DeepConf Baseline | Heuristic-Driven Peak | Decoupled Peak (Hybrid) |
 | :--- | :--- | :--- | :--- |
@@ -77,27 +92,22 @@ The transition to a decoupled architecture produced a dramatic shift in both spe
 | **Val Voting Acc** | 57.5% | 82.5% | **87.5%** |
 | **Improvement (vs Baseline)** | - | +25.0% | **+30.0%** |
 
-### 4.2 Key Findings
-
-* **Minority Correction**: The evolved program successfully identified correct answers in problems where they were the numerical minority (the "Underdog Challenge").
-* **Robustness**: The combination of `mean_selected_logprob`, `confidence_trend`, and `bottom_10_percentile` created a multi-faceted view that outperformed standard mean logprob approaches.
-
 
 
 ---
 
-## 5. Final Evolved Algorithm
+## 6. Final Evolved Algorithm
 
 The resulting confidence signature aggregates token-level statistics into a robust predictor $S_{raw}$ using a weighted linear combination of statistical features.
 
-### 5.1 Aggregate Features
+### 6.1 Aggregate Features
 
 1.  **$\phi_{bottom}$ (Weakest Link)**: Average of the bottom 25th percentile of token confidence.
 2.  **$\phi_{entropy}$ (Max Uncertainty)**: Average of the top 25th percentile of Shannon entropy.
 3.  **$\phi_{ratio}$ (High Confidence Density)**: Proportion of tokens exceeding median confidence.
 4.  **$\phi_{std}$ (Stability)**: Standard deviation of token confidences.
 
-### 5.2 Scoring Function
+### 6.2 Scoring Function
 
 $$
 S_{raw} = 0.32 \phi_{bottom} - 0.28 \phi_{entropy} + 0.22 \phi_{ratio} - 0.18 \phi_{std} + 0.12 \phi_{avg} + 0.08 \phi_{min}
@@ -105,11 +115,7 @@ $$
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
 By shifting from human-designed heuristics to machine-evolved signatures, we have discovered a "Self-Correction" signal that effectively suppresses hallucinations. This approach demonstrates that combining simple mathematical primitives with optimized weighting is far more robust than complex, nested manual logic.
 
-**Future Research Directions:**
-
-* **Scale Invariance**: Testing if these signatures maintain predictive power across different ensemble sizes ($N=5$ vs $N=100$).
-* **Probability Calibration**: Applying Platt Scaling to turn these relative scores into absolute probabilities of correctness for single-trace inference.
