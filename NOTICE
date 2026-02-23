@@ -1,0 +1,33 @@
+llm-correctness-indicator
+Copyright (c) 2026 Yan Wang
+
+This project contains code from multiple sources with different licenses:
+
+================================================================================
+
+1. OpenEvolve (openevolve/ directory)
+   Source: https://github.com/algorithmicsuperintelligence/openevolve
+   License: Apache License 2.0
+   Copyright: Copyright (c) 2024 Algorithmics Superintelligence
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   See openevolve/LICENSE for the full license text.
+
+================================================================================
+
+2. DeepConf (deepconf/ directory)
+   Source: https://github.com/facebookresearch/deepconf
+   License: MIT License
+   Copyright: Copyright (c) Facebook, Inc. and its affiliates
+
+   See deepconf/LICENSE for the full license text.
+
+================================================================================
+
+All other code in this project is licensed under the MIT License.
+See the LICENSE file in the root directory for details.

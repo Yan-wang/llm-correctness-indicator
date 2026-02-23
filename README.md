@@ -119,3 +119,34 @@ $$
 
 By shifting from human-designed heuristics to machine-evolved signatures, we have discovered a "Self-Correction" signal that effectively suppresses hallucinations. This approach demonstrates that combining simple mathematical primitives with optimized weighting is far more robust than complex, nested manual logic.
 
+
+## 8. Citation
+If you find this report helpful, you can cite as below
+```
+@software{Wang_llm-correctness-indicator_2026,
+  author = {Wang, Yan},
+  title = {{Evolving Robust Correctness Indicators for LLM Reasoning}},
+  url = {https://github.com/Yan-wang/llm-correctness-indicator},
+  year = {2026}
+}
+```
+
+---
+
+## 9. License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### Third-Party Components
+
+This project incorporates code from the following open-source projects:
+
+* **[OpenEvolve](https://github.com/algorithmicsuperintelligence/openevolve)** ([openevolve/](openevolve/))
+  Licensed under Apache License 2.0
+  Copyright (c) 2024 Algorithmics Superintelligence
+
+* **[DeepConf](https://github.com/facebookresearch/deepconf)** ([deepconf/](deepconf/))
+  Licensed under MIT License
+  Copyright (c) Facebook, Inc. and its affiliates
+
+See the [NOTICE](NOTICE) file for full licensing information and attributions.
